@@ -226,12 +226,8 @@ def main():
     videos_with_links = [
         {
             "video": "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=drive_link",
-            "click_url": "https://www.google.com"
+            "click_url": "http://msn.com"
         },
-        {
-            "video": "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=sharing",
-            "click_url": "https://www.amazon.com"
-        }
     ]
     
     for video in videos_with_links:
