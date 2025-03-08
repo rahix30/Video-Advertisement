@@ -7,6 +7,7 @@ import time
 import os
 import urllib.parse
 import requests
+import webbrowser
 
 class VideoPlayer:
     def __init__(self, root):
@@ -16,12 +17,26 @@ class VideoPlayer:
         # Configure the main window
         self.root.geometry("800x600")
         
+        # Create main container frame
+        self.main_frame = ttk.Frame(self.root)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        
         # Create frame for video
-        self.video_frame = ttk.Frame(self.root)
+        self.video_frame = ttk.Frame(self.main_frame)
         self.video_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
+        # Create URL link label
+        self.url_label = ttk.Label(
+            self.main_frame,
+            text="Click here to visit website",
+            cursor="hand2",
+            foreground="blue"
+        )
+        self.url_label.pack(pady=5)
+        self.url_label.bind('<Button-1>', self.on_url_click)
+        
         # Create frame for controls
-        self.control_frame = ttk.Frame(self.root)
+        self.control_frame = ttk.Frame(self.main_frame)
         self.control_frame.pack(fill=tk.X, padx=10, pady=5)
         
         # Create buttons
@@ -62,8 +77,9 @@ class VideoPlayer:
             'no_warnings': True
         }
         
-        # List to store video URLs
+        # List to store video URLs and their associated click URLs
         self.video_urls = []
+        self.click_urls = {}  # Dictionary to store click URLs for each video
         self.current_video_index = 0
         self.is_playing = False
         
@@ -74,6 +90,16 @@ class VideoPlayer:
                    os.path.exists("C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe")
         else:  # Linux/Mac
             return os.path.exists("/usr/bin/vlc") or os.path.exists("/usr/local/bin/vlc")
+    
+    def on_url_click(self, event=None):
+        """Handle click event on URL label"""
+        if self.video_urls and self.current_video_index < len(self.video_urls):
+            current_video = self.video_urls[self.current_video_index]
+            if current_video in self.click_urls:
+                url = self.click_urls[current_video]
+                print(f"Opening URL in browser: {url}")
+                webbrowser.open_new_tab(url)
+                self.status_label.config(text=f"Opening {url}")
     
     def check_drive_permissions(self, file_id):
         """Check if the Google Drive file is accessible"""
@@ -148,6 +174,10 @@ class VideoPlayer:
                 self.play_pause_button.config(text="Pause")
                 self.status_label.config(text="Playing")
                 print("Video playback started")
+                
+                # Update URL label with current URL
+                if url in self.click_urls:
+                    self.url_label.config(text=f"Click here to visit: {self.click_urls[url]}")
             else:
                 print("Root window no longer exists")
                 
@@ -181,9 +211,10 @@ class VideoPlayer:
             self.current_video_index = (self.current_video_index + 1) % len(self.video_urls)
             self.load_video(self.video_urls[self.current_video_index])
     
-    def add_video(self, url):
-        """Add video to playlist"""
+    def add_video(self, url, click_url):
+        """Add video to playlist with associated click URL"""
         self.video_urls.append(url)
+        self.click_urls[url] = click_url
         if len(self.video_urls) == 1:  # If this is the first video, play it
             self.load_video(url)
 
@@ -191,14 +222,20 @@ def main():
     root = tk.Tk()
     player = VideoPlayer(root)
     
-    # Add your Google Drive video links here
-    video_links = [
-        "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=drive_link",
-        "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=drive_link"
+    # Add your Google Drive video links and their associated click URLs
+    videos_with_links = [
+        {
+            "video": "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=drive_link",
+            "click_url": "https://www.google.com"
+        },
+        {
+            "video": "https://drive.google.com/file/d/1EurMx3f3RZGvpFIooFKbVWqQI82UB50d/view?usp=sharing",
+            "click_url": "https://www.amazon.com"
+        }
     ]
     
-    for link in video_links:
-        player.add_video(link)
+    for video in videos_with_links:
+        player.add_video(video["video"], video["click_url"])
     
     root.mainloop()
 
